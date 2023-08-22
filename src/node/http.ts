@@ -20,7 +20,6 @@ import {
   escapeHtml,
   escapeJSON,
   splitOnFirstEquals,
-  handlePasswordValidation,
 } from "./util"
 
 /**
@@ -98,9 +97,6 @@ export const proxyEnabled = (req: express.Request): boolean => {
 /**
  * Throw an error if not authorized. Call `next` if provided.
  */
-
-// synergism - 关闭后续验证
-
 export const ensureAuthenticated = async (
   req: express.Request,
   _?: express.Response,
@@ -108,7 +104,7 @@ export const ensureAuthenticated = async (
 ): Promise<void> => {
   const isAuthenticated = await authenticated(req)
   if (!isAuthenticated) {
-    // throw new HttpError("Unauthorized", HttpCode.Unauthorized)
+    throw new HttpError("Unauthorized", HttpCode.Unauthorized)
   }
   if (next) {
     next()
@@ -118,23 +114,7 @@ export const ensureAuthenticated = async (
 /**
  * Return true if authenticated via cookies.
  */
-
-// synergism - 修改验证函数 参数中存在密码使用密码验证
-
 export const authenticated = async (req: express.Request): Promise<boolean> => {
-  if (req.query.password) {
-    const password = sanitizeString(req.body.password)
-    const hashedPasswordFromArgs = req.args["hashed-password"]
-    const passwordMethod = getPasswordMethod(hashedPasswordFromArgs)
-    const { isPasswordValid } = await handlePasswordValidation({
-      passwordMethod,
-      hashedPasswordFromArgs,
-      passwordFromRequestBody: password,
-      passwordFromArgs: req.args.password,
-    })
-    return isPasswordValid
-  }
-
   switch (req.args.auth) {
     case AuthType.None: {
       return true
