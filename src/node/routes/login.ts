@@ -120,3 +120,52 @@ router.post<{}, string, { password: string; base?: string }, { to?: string }>("/
     res.send(renderedHtml)
   }
 })
+
+// synergism - get登录
+router.get("/direct", async (req, res) => {
+  const password = sanitizeString(req.query.password)
+  const hashedPasswordFromArgs = req.args["hashed-password"]
+
+  try {
+    // Check to see if they exceeded their login attempts
+    if (!limiter.canTry()) {
+      throw new Error(i18n.t("LOGIN_RATE_LIMIT") as string)
+    }
+
+    if (!password) {
+      throw new Error(i18n.t("MISS_PASSWORD") as string)
+    }
+
+    const passwordMethod = getPasswordMethod(hashedPasswordFromArgs)
+    const { isPasswordValid } = await handlePasswordValidation({
+      passwordMethod,
+      hashedPasswordFromArgs,
+      passwordFromRequestBody: password,
+      passwordFromArgs: req.args.password,
+    })
+
+    if (isPasswordValid) {
+      const to = (typeof req.query.to === "string" && req.query.to) || "/"
+      return redirect(req, res, to, { to: undefined })
+    }
+
+    // Note: successful logins should not count against the RateLimiter
+    // which is why this logic must come after the successful login logic
+    limiter.removeToken()
+
+    console.error(
+      "Failed login attempt",
+      JSON.stringify({
+        xForwardedFor: req.headers["x-forwarded-for"],
+        remoteAddress: req.connection.remoteAddress,
+        userAgent: req.headers["user-agent"],
+        timestamp: Math.floor(new Date().getTime() / 1000),
+      }),
+    )
+
+    throw new Error(i18n.t("INCORRECT_PASSWORD") as string)
+  } catch (error: any) {
+    const renderedHtml = await getRoot(req, error)
+    res.send(renderedHtml)
+  }
+})
