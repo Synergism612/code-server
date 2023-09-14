@@ -1,0 +1,20 @@
+node 16.20.1
+
+sudo apt-get install -y g++ gcc make python2.7 pkg-config libx11-dev libxkbfile-dev
+sudo apt-get install jq
+sudo apt-get install quilt
+
+必须是git仓库
+版本号必须是code-server版本
+
+安装nfpm
+
+quilt push -a 打补丁
+git submodule update --init 引用vscode
+yarn 安依赖
+yarn run build 构建
+VERSION='4.16.1' yarn run build:vscode 构建vscode
+yarn run release 发布
+yarn run release:standalone 独立发布
+yarn run test:integration 测试
+VERSION='4.16.1' yarn run package 打包
