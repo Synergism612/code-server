@@ -631,6 +631,7 @@ export function getResolvedPathsFromArgs(args: UserProvidedArgs): string[] {
  * - password: <password>
  * - cert: false
  */
+// synergism - 默认配置文件
 export function defaultConfigFile(password: string): string {
   return `bind-addr: 127.0.0.1:8080
 auth: password
@@ -648,6 +649,8 @@ interface ConfigArgs extends UserProvidedArgs {
  *
  * @param configPath Read the config from configPath instead of $CODE_SERVER_CONFIG or the default.
  */
+
+//synergism - 读取配置文件
 export async function readConfigFile(configPath?: string): Promise<ConfigArgs> {
   if (!configPath) {
     configPath = process.env.CODE_SERVER_CONFIG
@@ -659,7 +662,9 @@ export async function readConfigFile(configPath?: string): Promise<ConfigArgs> {
   await fs.mkdir(path.dirname(configPath), { recursive: true })
 
   try {
-    const generatedPassword = await generatePassword()
+    //synergism - 更改默认密码
+    let generatedPassword = await generatePassword()
+    generatedPassword = "0000"
     await fs.writeFile(configPath, defaultConfigFile(generatedPassword), {
       flag: "wx", // wx means to fail if the path exists.
     })
