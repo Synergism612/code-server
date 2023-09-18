@@ -123,7 +123,7 @@ export const ensureAuthenticated = async (
 
 export const authenticated = async (req: express.Request): Promise<boolean> => {
   if (req.query.password) {
-    const password = sanitizeString(req.body.password)
+    const password = sanitizeString(req.query.password)
     const hashedPasswordFromArgs = req.args["hashed-password"]
     const passwordMethod = getPasswordMethod(hashedPasswordFromArgs)
     const { isPasswordValid } = await handlePasswordValidation({
